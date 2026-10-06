@@ -78,8 +78,8 @@ class AddTripCubit extends Cubit<AddTripState> {
         state.copyWith(
           isSubmitting: false,
           message:
-              '${networkErrorMessage(e)}\n'
-              'Можно нажать «Сохранить» ещё раз — дубль не создастся.',
+              '${networkErrorMessage(e)} Поездка не сохранена. '
+              'Попробуйте ещё раз — второй раз она не запишется.',
         ),
       );
     }

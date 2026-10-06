@@ -37,7 +37,7 @@ void main() {
 
     await cubit.submit();
     expect(cubit.state.isSaved, isFalse);
-    expect(cubit.state.message, contains('дубль не создастся'));
+    expect(cubit.state.message, contains('Поездка не сохранена'));
 
     await cubit.submit();
     expect(cubit.state.isSaved, isTrue);
