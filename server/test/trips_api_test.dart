@@ -77,6 +77,7 @@ void main() {
 
       expect(status, 409);
       expect(body['error'], 'overlap');
+      expect(body['message'], 'В это время уже есть поездка 08:10–08:32');
       expect(store.length, 1);
     });
 

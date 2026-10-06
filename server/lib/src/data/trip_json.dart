@@ -35,32 +35,41 @@ abstract final class TripJson {
 
   static TripParseResult parse(Object? json) {
     if (json is! Map<String, Object?>) {
-      return TripInvalid([const FieldError('body', 'ожидается JSON-объект')]);
+      return TripInvalid([
+        const FieldError('body', 'Ожидается JSON-объект с поездкой'),
+      ]);
     }
     final errors = <FieldError>[];
 
     final id = json['id'];
     if (id is! String || id.trim().isEmpty) {
-      errors.add(const FieldError('id', 'обязательная непустая строка'));
+      errors.add(const FieldError('id', 'Не указан id поездки'));
     } else if (id.length > _maxIdLength) {
-      errors.add(const FieldError('id', 'не длиннее $_maxIdLength символов'));
+      errors.add(
+        const FieldError(
+          'id',
+          'Слишком длинный id (максимум $_maxIdLength символов)',
+        ),
+      );
     }
 
     final start = _time(json, 'start', errors);
     final end = _time(json, 'end', errors);
     if (start != null && end != null && !end.isAfter(start)) {
-      errors.add(const FieldError('end', 'окончание должно быть позже начала'));
+      errors.add(
+        const FieldError('end', 'Поездка закончилась раньше, чем началась'),
+      );
     }
 
     final amount = _rubles(json, 'amount', errors);
     if (amount != null && amount <= 0) {
-      errors.add(const FieldError('amount', 'сумма должна быть больше 0'));
+      errors.add(const FieldError('amount', 'Сумма должна быть больше нуля'));
     }
 
     final commission = _rubles(json, 'commission', errors);
     if (commission != null && commission < 0) {
       errors.add(
-        const FieldError('commission', 'комиссия не может быть отрицательной'),
+        const FieldError('commission', 'Комиссия не может быть меньше нуля'),
       );
     }
     if (amount != null &&
@@ -68,7 +77,7 @@ abstract final class TripJson {
         commission != null &&
         commission > amount) {
       errors.add(
-        const FieldError('commission', 'комиссия не может превышать сумму'),
+        const FieldError('commission', 'Комиссия больше суммы поездки'),
       );
     }
 
@@ -78,7 +87,12 @@ abstract final class TripJson {
       _ => null,
     };
     if (payment == null) {
-      errors.add(const FieldError('payment', 'допустимо "cash" или "card"'));
+      errors.add(
+        const FieldError(
+          'payment',
+          'Способ оплаты: "cash" (наличные) или "card" (карта)',
+        ),
+      );
     }
 
     if (errors.isNotEmpty) return TripInvalid(errors);
@@ -128,7 +142,7 @@ abstract final class TripJson {
       errors.add(
         FieldError(
           field,
-          'ожидается дата ISO 8601 со смещением, например 2026-10-01T08:10:00+05:00',
+          'Неверное время. Пример: 2026-10-01T08:10:00+05:00 (с часовым поясом)',
         ),
       );
     }
@@ -146,7 +160,7 @@ abstract final class TripJson {
     if (value is double && value.isFinite && value == value.roundToDouble()) {
       return value.toInt();
     }
-    errors.add(FieldError(field, 'ожидается целое число рублей'));
+    errors.add(FieldError(field, 'Нужна сумма в целых рублях'));
     return null;
   }
 }

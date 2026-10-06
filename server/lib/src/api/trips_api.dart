@@ -5,6 +5,7 @@ import 'package:shelf_router/shelf_router.dart';
 
 import '../data/trip_json.dart';
 import '../domain/day_summary.dart';
+import '../domain/offset_date_time.dart';
 import '../domain/trip.dart';
 import '../domain/trip_store.dart';
 
@@ -33,7 +34,7 @@ class TripsApi {
 
   Response _day(Request request, String date) {
     if (!_isValidDate(date)) {
-      return _error(400, 'validation', 'дата должна быть в формате yyyy-MM-dd');
+      return _error(400, 'validation', 'Неверная дата. Пример: 2026-10-01');
     }
     final trips = _store.tripsOn(date);
     return _json(200, {
@@ -48,7 +49,11 @@ class TripsApi {
     try {
       body = jsonDecode(await request.readAsString());
     } on FormatException {
-      return _error(400, 'validation', 'тело запроса — не JSON');
+      return _error(
+        400,
+        'validation',
+        'Не получилось прочитать запрос: ожидается JSON',
+      );
     }
 
     final Trip trip;
@@ -73,16 +78,22 @@ class TripsApi {
         return _error(
           409,
           'id_conflict',
-          'Поездка с id ${trip.id} уже есть, но с другими данными',
+          'Эта поездка уже сохранена, но с другими данными',
         );
       case TripOverlap(trip: final other):
         return _error(
           409,
           'overlap',
-          'Время пересекается с поездкой ${other.id} '
-              '(${other.start.toIso8601String()} – ${other.end.toIso8601String()})',
+          'В это время уже есть поездка '
+              '${_clock(other.start)}–${_clock(other.end)}',
         );
     }
+  }
+
+  static String _clock(OffsetDateTime time) {
+    final w = time.wallClock;
+    return '${w.hour.toString().padLeft(2, '0')}:'
+        '${w.minute.toString().padLeft(2, '0')}';
   }
 
   static bool _isValidDate(String date) {

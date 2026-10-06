@@ -6,9 +6,9 @@ String networkErrorMessage(Object error) {
   return switch (error.type) {
     DioExceptionType.connectionTimeout ||
     DioExceptionType.receiveTimeout ||
-    DioExceptionType.sendTimeout => 'Сервер не отвечает.',
+    DioExceptionType.sendTimeout => 'Сервер долго не отвечает.',
     DioExceptionType.connectionError => 'Нет связи с сервером.',
-    DioExceptionType.badResponse => 'Сервер вернул ошибку.',
+    DioExceptionType.badResponse => 'На сервере что-то сломалось.',
     _ => 'Нет связи с сервером.',
   };
 }

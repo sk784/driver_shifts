@@ -17,6 +17,8 @@ class AddTripCubit extends Cubit<AddTripState> {
   AddTripCubit(this._repository, this._ids, @factoryParam DateTime date)
     : super(AddTripState(date: date));
 
+  static const _maxTripDuration = Duration(hours: 24);
+
   final TripsRepository _repository;
   final TripIdGenerator _ids;
 
@@ -79,7 +81,7 @@ class AddTripCubit extends Cubit<AddTripState> {
           isSubmitting: false,
           message:
               '${networkErrorMessage(e)} Поездка не сохранена. '
-              'Попробуйте ещё раз — второй раз она не запишется.',
+              'Нажмите «Сохранить» ещё раз — дубля не будет.',
         ),
       );
     }
@@ -92,12 +94,14 @@ class AddTripCubit extends Cubit<AddTripState> {
 
   Map<AddTripField, String> _validate() {
     final errors = <AddTripField, String>{};
-    if (state.start == null) errors[AddTripField.start] = 'Укажите начало';
-    if (state.end == null) errors[AddTripField.end] = 'Укажите окончание';
+    if (state.start == null) errors[AddTripField.start] = 'Когда началась?';
+    if (state.end == null) errors[AddTripField.end] = 'Когда закончилась?';
 
     final amount = int.tryParse(state.amount.trim());
-    if (amount == null || amount <= 0) {
-      errors[AddTripField.amount] = 'Сумма должна быть больше 0';
+    if (state.amount.trim().isEmpty) {
+      errors[AddTripField.amount] = 'Укажите сумму';
+    } else if (amount == null || amount <= 0) {
+      errors[AddTripField.amount] = 'Сумма должна быть больше нуля';
     }
 
     final commissionText = state.commission.trim();
@@ -105,9 +109,9 @@ class AddTripCubit extends Cubit<AddTripState> {
         ? 0
         : int.tryParse(commissionText);
     if (commission == null || commission < 0) {
-      errors[AddTripField.commission] = 'Целое число от 0';
+      errors[AddTripField.commission] = 'Проверьте комиссию';
     } else if (amount != null && amount > 0 && commission > amount) {
-      errors[AddTripField.commission] = 'Не больше суммы поездки';
+      errors[AddTripField.commission] = 'Комиссия больше суммы поездки';
     }
 
     if (errors.containsKey(AddTripField.start) ||
@@ -116,7 +120,12 @@ class AddTripCubit extends Cubit<AddTripState> {
     }
     final (start, end) = _times();
     if (!end.isAfter(start)) {
-      errors[AddTripField.end] = 'Окончание должно быть позже начала';
+      errors[AddTripField.end] =
+          'Закончилась раньше, чем началась. Если после полуночи — '
+          'включите переключатель ниже';
+    } else if (end.instant.difference(start.instant) > _maxTripDuration) {
+      errors[AddTripField.end] =
+          'Поездка дольше суток. Точно закончилась после полуночи?';
     }
     return errors;
   }

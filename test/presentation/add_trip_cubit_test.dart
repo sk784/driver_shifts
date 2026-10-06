@@ -130,6 +130,24 @@ void main() {
     await cubit.close();
   });
 
+  test(
+    'переключатель «после полуночи» при дневном времени — больше суток',
+    () async {
+      final cubit = build();
+      fill(cubit);
+      cubit
+        ..changeStart(const TimeOfDay(hour: 8, minute: 0))
+        ..changeEnd(const TimeOfDay(hour: 9, minute: 0))
+        ..changeEndNextDay(true);
+
+      await cubit.submit();
+
+      expect(cubit.state.fieldErrors.keys, [AddTripField.end]);
+      expect(repository.sentTrips, isEmpty);
+      await cubit.close();
+    },
+  );
+
   test('комиссия больше суммы — ошибка', () async {
     final cubit = build();
     fill(cubit);
