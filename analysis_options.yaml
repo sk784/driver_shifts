@@ -1,0 +1,10 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    # Отдельный Dart-пакет со своим анализом.
+    - server/**
+    # Сгенерированный код.
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "lib/injectable/injectable.config.dart"
